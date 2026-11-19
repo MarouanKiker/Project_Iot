@@ -14,7 +14,7 @@ const char* WIFI_SSID     = "Et@ehei";
 const char* WIFI_PASSWORD = "eheio2023"; 
 
 // ── Configuration serveur ────────────────────────────────────
-const char* SERVER_URL = "http://10.9.9.107:8000/post/";
+const char* SERVER_URL = "http://marouankiker.pythonanywhere.com/post/";
 
 // ── Configuration capteur DHT ────────────────────────────────
 #define DHTPIN  D2

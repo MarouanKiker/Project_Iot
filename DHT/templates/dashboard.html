@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cold Chain Monitoring — Dashboard Frigo</title>
-    <!-- Police Inter & JetBrains Mono -->
+    <title>Cold Chain IoT — Surveillance Température & Humidité</title>
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- ApexCharts -->
@@ -18,7 +18,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     }
                 }
@@ -28,13 +28,18 @@
     <style>
         .active-card-temp {
             outline: 2px solid #f43f5e;
-            box-shadow: 0 0 25px rgba(244, 63, 94, 0.25);
+            box-shadow: 0 0 35px rgba(244, 63, 94, 0.22);
         }
         .active-card-hum {
             outline: 2px solid #0ea5e9;
-            box-shadow: 0 0 25px rgba(14, 165, 233, 0.25);
+            box-shadow: 0 0 35px rgba(14, 165, 233, 0.22);
         }
-        /* Custom ApexCharts toolbar in dark mode */
+
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+
         .dark .apexcharts-menu {
             background: #0f172a !important;
             border-color: #334155 !important;
@@ -49,54 +54,65 @@
         .dark .apexcharts-toolbar svg:hover {
             fill: #f8fafc !important;
         }
+
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-[#090d16] text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen transition-colors duration-200">
+<body class="bg-[#f8fafc] dark:bg-[#070b14] text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen transition-colors duration-200">
 
-    <!-- Header avec Switcher Thème (Dark / Light) -->
-    <header class="border-b border-slate-200 dark:border-slate-800/80 bg-white/90 dark:bg-[#0c1222]/90 backdrop-blur-md sticky top-0 z-50 transition-colors">
+    <!-- ── HEADER ─────────────────────────────────────────────── -->
+    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-[#0c1222]/80 backdrop-blur-xl sticky top-0 z-50 transition-colors">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
+            <!-- Left Branding -->
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/25">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                        Cold Chain Monitoring
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-sky-700 dark:text-sky-400 border border-slate-200 dark:border-slate-700">
-                            Frigo Ta7alil
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
+                            Cold Chain Monitoring
+                        </h1>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80">
+                            IoT Live
                         </span>
-                    </h1>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Norme réactifs : <span class="text-emerald-600 dark:text-emerald-400 font-medium">2.0°C – 8.0°C</span></p>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        Norme de conservation : <span class="text-emerald-600 dark:text-emerald-400 font-semibold font-mono">2.0°C – 8.0°C</span>
+                    </p>
                 </div>
             </div>
 
+            <!-- Right Controls -->
             <div class="flex items-center gap-2.5 sm:gap-3">
-                <!-- Compteur synchronisation 20s -->
-                <div class="flex items-center gap-1.5 text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/90 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
-                    <span class="relative flex h-2 w-2">
+                <!-- Sync indicator with animated pulse -->
+                <div class="flex items-center gap-2 text-xs font-mono text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <span class="relative flex h-2.5 w-2.5">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                     </span>
-                    <span class="hidden sm:inline">Sync :</span>
+                    <span class="hidden sm:inline text-slate-400 dark:text-slate-500">Sync:</span>
                     <span id="countdown" class="text-slate-900 dark:text-white font-bold">20</span>s
                 </div>
 
-                <!-- Bouton Bascule Dark / Light Mode -->
-                <button id="themeToggleBtn" class="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Basculer thème Clair/Sombre">
-                    <!-- Icône Soleil (visible en dark) -->
+                <!-- Theme Switcher -->
+                <button id="themeToggleBtn" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" title="Basculer thème Clair/Sombre">
                     <svg id="sunIcon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                     </svg>
-                    <!-- Icône Lune (visible en light) -->
                     <svg id="moonIcon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                 </button>
 
-                <a href="/admin/" target="_blank" class="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                <!-- Admin Link -->
+                <a href="/admin/" target="_blank" class="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     Admin
                 </a>
             </div>
@@ -105,20 +121,25 @@
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
 
-        <!-- Indication d'interaction -->
-        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
-            <span>Sélectionnez une carte pour ouvrir et zoomer dans son graphique dédié :</span>
-            <span class="text-[11px] font-mono">Actualisation auto toutes les 20s</span>
+        <!-- Banner Info & Directives -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 bg-white/50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800/60">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex h-2 w-2 rounded-full bg-sky-500"></span>
+                <span>Surveillance continue en temps réel via capteur <strong class="text-slate-700 dark:text-slate-200">ESP8266 + DHT11</strong></span>
+            </div>
+            <div class="flex items-center gap-2 font-mono text-[11px]">
+                <span>Alerte déclenchée si &gt; <span class="text-rose-500 font-bold">28.0°C</span> (Gmail + Telegram)</span>
+            </div>
         </div>
 
-        <!-- 2 CARTES INTERACTIVES (Clic pour ouvrir le graphe) -->
+        <!-- ── 2 CARTES INTERACTIVES (Clic pour ouvrir/fermer le graphe) ── -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- CARTE 1 : TEMPÉRATURE (CLIQUABLE) -->
-            <div id="cardTempBtn" class="cursor-pointer bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md dark:shadow-none transition-all duration-200 relative overflow-hidden group select-none">
+            <!-- CARTE 1 : TEMPÉRATURE -->
+            <div id="cardTempBtn" class="cursor-pointer bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-slate-200/90 dark:border-slate-800/90 shadow-sm hover:shadow-lg dark:hover:shadow-rose-950/20 transition-all duration-300 relative overflow-hidden group select-none">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50"></span>
                         Température Frigo
                     </span>
                     <span id="tempStatusPill" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
@@ -126,32 +147,44 @@
                     </span>
                 </div>
 
-                <div class="my-5 flex items-baseline justify-between">
+                <div class="my-6 flex items-baseline justify-between">
                     <div class="flex items-baseline gap-2">
                         <span id="cardTemp" class="text-6xl font-black text-slate-900 dark:text-white tracking-tight font-mono">--.-</span>
-                        <span class="text-2xl font-bold text-slate-400">°C</span>
+                        <span class="text-2xl font-bold text-slate-400 dark:text-slate-500">°C</span>
                     </div>
-                    <div class="text-right">
-                        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 px-2.5 py-1 rounded-lg group-hover:scale-105 transition-transform">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/60 px-3 py-1.5 rounded-xl group-hover:scale-105 transition-transform shadow-sm">
                             <span>Voir le graphe</span>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                         </span>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-4 border-t border-slate-100 dark:border-slate-800/80">
-                    <span id="tempTimeAgo" class="font-mono">Dernière mesure : --</span>
-                    <span class="text-emerald-600 dark:text-emerald-400 font-medium">Norme : 2°C – 8°C</span>
+                <!-- Jauge visuelle de température -->
+                <div class="space-y-1.5 mb-4">
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="tempGauge" class="bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+                        <span>0°C</span>
+                        <span class="text-emerald-500 font-semibold">2°C - 8°C (Cible)</span>
+                        <span>40°C</span>
+                    </div>
                 </div>
 
-                <div id="tempBar" class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-amber-500"></div>
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                    <span id="tempTimeAgo" class="font-mono">Dernière mesure : --</span>
+                    <span class="text-emerald-600 dark:text-emerald-400 font-medium font-mono">Norme : 2°C – 8°C</span>
+                </div>
+
+                <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-amber-500"></div>
             </div>
 
-            <!-- CARTE 2 : HUMIDITÉ (CLIQUABLE) -->
-            <div id="cardHumBtn" class="cursor-pointer bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md dark:shadow-none transition-all duration-200 relative overflow-hidden group select-none">
+            <!-- CARTE 2 : HUMIDITÉ -->
+            <div id="cardHumBtn" class="cursor-pointer bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-slate-200/90 dark:border-slate-800/90 shadow-sm hover:shadow-lg dark:hover:shadow-sky-950/20 transition-all duration-300 relative overflow-hidden group select-none">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-sky-400 shadow-sm shadow-sky-400/50"></span>
                         Humidité Relative
                     </span>
                     <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60">
@@ -159,22 +192,34 @@
                     </span>
                 </div>
 
-                <div class="my-5 flex items-baseline justify-between">
+                <div class="my-6 flex items-baseline justify-between">
                     <div class="flex items-baseline gap-2">
                         <span id="cardHum" class="text-6xl font-black text-slate-900 dark:text-white tracking-tight font-mono">--.-</span>
-                        <span class="text-2xl font-bold text-slate-400">%</span>
+                        <span class="text-2xl font-bold text-slate-400 dark:text-slate-500">%</span>
                     </div>
-                    <div class="text-right">
-                        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-900/60 px-2.5 py-1 rounded-lg group-hover:scale-105 transition-transform">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-900/60 px-3 py-1.5 rounded-xl group-hover:scale-105 transition-transform shadow-sm">
                             <span>Voir le graphe</span>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                         </span>
                     </div>
                 </div>
 
+                <!-- Jauge visuelle d'humidité -->
+                <div class="space-y-1.5 mb-4">
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="humGauge" class="bg-gradient-to-r from-sky-400 to-indigo-500 h-full w-0 transition-all duration-500"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400 font-mono">
+                        <span>0%</span>
+                        <span class="text-sky-400 font-semibold">Humidité ambiante</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+
                 <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 pt-4 border-t border-slate-100 dark:border-slate-800/80">
                     <span id="humTimeAgo" class="font-mono">Dernière mesure : --</span>
-                    <span class="text-slate-500 dark:text-slate-400">Humidité ambiante</span>
+                    <span class="text-slate-500 dark:text-slate-400">Air ambiant</span>
                 </div>
 
                 <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 to-indigo-500"></div>
@@ -182,11 +227,11 @@
 
         </div>
 
-        <!-- ZONE DU GRAPHE DÉDIÉ (MASQUÉE PAR DÉFAUT, S'OUVRE AU CLIC) -->
+        <!-- ── ZONE DU GRAPHE DÉDIÉ (MASQUÉE PAR DÉFAUT, S'OUVRE AU CLIC) ── -->
         <div id="graphSection" class="hidden bg-white dark:bg-[#0f172a] rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
                 <div class="flex items-center gap-3">
-                    <div id="graphIconBadge" class="w-8 h-8 rounded-lg flex items-center justify-center text-white">
+                    <div id="graphIconBadge" class="w-9 h-9 rounded-xl flex items-center justify-center text-white">
                         <!-- SVG injecté via JS -->
                     </div>
                     <div>
@@ -197,11 +242,11 @@
 
                 <!-- Commandes de zoom & fermeture -->
                 <div class="flex items-center gap-2">
-                    <span class="hidden sm:inline-block text-[11px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-1 rounded">
+                    <span class="hidden sm:inline-block text-[11px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
                         🔍 Glisser pour zoomer • Double-clic pour réinitialiser
                     </span>
-                    <button id="closeGraphBtn" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition flex items-center gap-1" title="Fermer le graphe">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <button id="closeGraphBtn" class="text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition flex items-center gap-1.5 shadow-sm" title="Fermer le graphe">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         <span>Fermer</span>
                     </button>
                 </div>
@@ -211,11 +256,16 @@
             <div id="activeChart" class="w-full h-80"></div>
         </div>
 
-        <!-- HISTORIQUE COMPLET (Tableau sobre Light/Dark) -->
+        <!-- ── HISTORIQUE COMPLET ── -->
         <div class="bg-white dark:bg-[#0f172a] rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl overflow-hidden transition-colors">
             <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40">
-                <h3 class="text-sm font-bold text-slate-900 dark:text-white">Historique complet des relevés</h3>
-                <span id="historyCount" class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-md">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Historique complet des relevés</h3>
+                </div>
+                <span id="historyCount" class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
                     0 mesure(s)
                 </span>
             </div>
@@ -228,12 +278,12 @@
                             <th class="px-6 py-3.5">Date & Heure</th>
                             <th class="px-6 py-3.5">Température</th>
                             <th class="px-6 py-3.5">Humidité</th>
-                            <th class="px-6 py-3.5">Statut Médical</th>
+                            <th class="px-6 py-3.5">Statut de Conformité</th>
                         </tr>
                     </thead>
                     <tbody id="historyBody" class="divide-y divide-slate-100 dark:divide-slate-800/70 font-mono text-slate-700 dark:text-slate-300">
                         <tr>
-                            <td colspan="5" class="px-6 py-6 text-center text-slate-400 font-sans">Chargement des relevés en cours...</td>
+                            <td colspan="5" class="px-6 py-8 text-center text-slate-400 font-sans">Chargement des relevés en cours...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -242,6 +292,7 @@
 
     </main>
 
+    <!-- ── SCRIPTS ────────────────────────────────────────────── -->
     <script>
         const REFRESH_SECONDS = 20;
         let countdownTimer = REFRESH_SECONDS;
@@ -292,18 +343,18 @@
 
             const isTemp = metric === 'temp';
             const color = isTemp ? '#f43f5e' : '#0ea5e9';
-            const titleText = isTemp ? 'Température (°C) — Frigo Médical' : 'Humidité Relative (%) — Capteur DHT11';
+            const titleText = isTemp ? 'Température (°C)' : 'Humidité Relative (%)';
             const yTitle = isTemp ? 'Température (°C)' : 'Humidité (%)';
 
             // Mettre à jour l'en-tête du panneau graphe
             document.getElementById('graphTitle').textContent = isTemp ? 'Graphique Température' : 'Graphique Humidité';
-            document.getElementById('graphSubtitle').textContent = isTemp ? 'Norme réglementaire 2.0°C – 8.0°C (Zoomez sur la période souhaitée)' : 'Humidité relative de l’air dans le compartiment';
+            document.getElementById('graphSubtitle').textContent = isTemp ? 'Norme de sécurité 2.0°C – 8.0°C (Zoomez sur la période souhaitée)' : 'Humidité relative de l’air ambiant mesurée par DHT11';
             
             const badge = document.getElementById('graphIconBadge');
-            badge.className = `w-8 h-8 rounded-lg flex items-center justify-center text-white ${isTemp ? 'bg-rose-500 shadow-md shadow-rose-500/30' : 'bg-sky-500 shadow-md shadow-sky-500/30'}`;
+            badge.className = `w-9 h-9 rounded-xl flex items-center justify-center text-white ${isTemp ? 'bg-rose-500 shadow-md shadow-rose-500/30' : 'bg-sky-500 shadow-md shadow-sky-500/30'}`;
             badge.innerHTML = isTemp 
-                ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'
-                : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>';
+                ? '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'
+                : '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>';
 
             // Préparation des séries
             const recent = globalData.slice(-60); // 60 derniers points
@@ -321,12 +372,12 @@
                 chart: {
                     type: 'area',
                     height: 320,
-                    fontFamily: 'Inter, sans-serif',
+                    fontFamily: 'Plus Jakarta Sans, sans-serif',
                     background: 'transparent',
                     zoom: {
                         enabled: true,
-                        type: 'x',              // Zoom horizontal fluide
-                        autoScaleYaxis: true    // AXE Y DYNAMIQUE AUTOMATIQUE QUAND ON ZOOME !
+                        type: 'x',
+                        autoScaleYaxis: true
                     },
                     toolbar: {
                         show: true,
@@ -375,7 +426,7 @@
                 },
                 yaxis: {
                     title: { text: yTitle, style: { color: color, fontSize: '11px', fontWeight: 600 } },
-                    forceNiceScale: true,  // échelle intelligente & dynamique
+                    forceNiceScale: true,
                     labels: {
                         formatter: val => val !== undefined && val !== null ? (isTemp ? val.toFixed(1) + '°C' : Math.round(val) + '%') : '',
                         style: { colors: isDark ? '#94a3b8' : '#64748b', fontSize: '11px', fontFamily: 'JetBrains Mono' }
@@ -420,14 +471,12 @@
 
         function selectMetric(metric) {
             if (activeMetric === metric && !graphSection.classList.contains('hidden')) {
-                // Si on reclique sur la même carte, on referme
                 closeGraph();
                 return;
             }
 
             graphSection.classList.remove('hidden');
 
-            // Mise à jour des styles de contour actif
             if (metric === 'temp') {
                 cardTempBtn.classList.add('active-card-temp');
                 cardHumBtn.classList.remove('active-card-hum');
@@ -437,8 +486,6 @@
             }
 
             renderMetricChart(metric);
-
-            // Défilement doux vers le graphe
             graphSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
@@ -483,15 +530,20 @@
                 document.getElementById('cardTemp').textContent = latest.temperature.toFixed(1);
                 document.getElementById('cardHum').textContent = latest.humidity.toFixed(1);
 
+                // Mise à jour jauges
+                const tempPct = Math.min(Math.max((latest.temperature / 40) * 100, 0), 100);
+                const humPct = Math.min(Math.max(latest.humidity, 0), 100);
+                document.getElementById('tempGauge').style.width = tempPct + '%';
+                document.getElementById('humGauge').style.width = humPct + '%';
+
                 const isConform = (latest.temperature >= 2.0 && latest.temperature <= 8.0);
                 const pill = document.getElementById('tempStatusPill');
-                const isDark = isDarkMode();
 
                 if (isConform) {
                     pill.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800';
                     pill.textContent = '✓ Conforme (2-8°C)';
                 } else {
-                    pill.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800';
+                    pill.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 animate-pulse';
                     pill.textContent = '⚠ Hors norme';
                 }
 
