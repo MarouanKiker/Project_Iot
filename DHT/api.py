@@ -1,4 +1,4 @@
-from .models import Dht11
+from .models import Dht11, Incident
 from .serializers import DHT11serialize
 from rest_framework.decorators import api_view
 from rest_framework import generics
@@ -30,13 +30,24 @@ class Dhtviews(generics.CreateAPIView):
         threshold = getattr(settings, 'TEMP_ALERT_THRESHOLD', 28)
 
         if temperature > threshold:
+            # Créer automatiquement un Incident dans la base de données
+            try:
+                Incident.objects.create(
+                    dht=data,
+                    temperature=temperature,
+                    description=f"Dépassement critique : {temperature:.1f} °C mesurés (seuil maximal : {threshold} °C)",
+                    status="Ouvert"
+                )
+            except Exception as e:
+                print(f"[ERREUR INCIDENT] {e}")
+
             message = (
                 f"🚨 ALERTE Cold Chain !\n"
                 f"━━━━━━━━━━━━━━━━━━\n"
                 f"🌡️ Température : {temperature:.1f} °C\n"
                 f"💧 Humidité    : {data.humidity:.1f} %\n"
                 f"⚠️ Seuil dépassé : > {threshold} °C\n"
-                f"🏢 Labo Ta7alil - Frigo Réactifs"
+                f"❄️ Surveillance Frigo Médical"
             )
 
             # 3. Envoi Email Gmail
