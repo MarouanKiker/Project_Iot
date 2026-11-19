@@ -1,0 +1,34 @@
+# Environnements virtuels Python
+.venv/
+venv/
+env/
+
+# Fichiers compilés Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Base de données locale (ne pas publier les données)
+*.sqlite3
+
+# Fichiers secrets (variables d'environnement)
+.env
+.env.*
+!.env.example
+
+# IDE PyCharm
+.idea/
+
+# Fichiers statiques collectés
+staticfiles/
+media/
+
+# Logs
+*.log
+
+# Fichiers système Windows
+Thumbs.db
+desktop.ini
+
+# Zip de sauvegarde
+*.zip
